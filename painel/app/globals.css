@@ -51,3 +51,9 @@ th { color: var(--suave); font-weight: 600; font-size: .8rem; } td.nome { white-
 .btn:disabled { opacity: .6; cursor: wait; }
 .resultado pre { white-space: pre-wrap; word-break: break-word; font: inherit; background: var(--fundo);
   border: 1px solid var(--linha); border-radius: 8px; padding: 12px; margin: 8px 0 0; }
+.anexos { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.miniaturas { display: flex; flex-wrap: wrap; gap: 8px; }
+.mini { position: relative; width: 84px; height: 84px; border-radius: 8px; overflow: hidden; border: 1px solid var(--linha); }
+.mini img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.mini button { position: absolute; top: 2px; right: 2px; width: 22px; height: 22px; border-radius: 50%; border: 0;
+  background: rgba(0,0,0,.65); color: #fff; cursor: pointer; line-height: 1; }

@@ -2,6 +2,8 @@ import Anthropic from "@anthropic-ai/sdk";
 import { metaCusto } from "./diagnostico";
 import { carregarCriativos, carregarPainel, type Linha, type Painel } from "./meta";
 
+export type Imagem = { mediaType: "image/jpeg" | "image/png" | "image/webp" | "image/gif"; base64: string };
+
 export type ChaveAgente =
   | "analista" | "classificador" | "espiao" | "roteirista" | "whatsapp" | "orcamento" | "orquestrador";
 
@@ -53,7 +55,7 @@ TAREFA: crie de 3 a 5 roteiros de anúncio (reels/vídeo curto ou imagem) para o
     descricao: "Analisa conversas: onde se perde venda, objeções, respostas rápidas e roteiro de robô.",
     entrada: {
       rotulo: "Conversas exportadas do WhatsApp (obrigatório)",
-      dica: "Cole o texto de várias conversas exportadas (sem mídia). Telefones e e-mails são ocultados automaticamente, mas troque os nomes dos clientes antes de colar.",
+      dica: "Cole o texto de várias conversas exportadas (sem mídia). Telefones e e-mails no texto são ocultados, mas troque os nomes. Se anexar prints de conversa, cubra nomes e telefones antes: nas imagens não dá para ocultar automaticamente.",
       obrigatorio: true,
     },
     prompt: `${BASE}
@@ -102,13 +104,21 @@ export function mascarar(texto: string) {
 }
 
 // --------------------------------------------------------------- execução
+function conteudo(texto: string, imagens: Imagem[]): Anthropic.ContentBlockParam[] {
+  const blocos: Anthropic.ContentBlockParam[] = imagens.map((i) => ({
+    type: "image", source: { type: "base64", media_type: i.mediaType, data: i.base64 },
+  }));
+  const aviso = imagens.length ? `O dono anexou ${imagens.length} imagem(ns) acima. Analise-as junto com os dados.\n\n` : "";
+  return [...blocos, { type: "text", text: aviso + texto }];
+}
+
 const MODELO = process.env.ANTHROPIC_MODEL || "claude-opus-5-5";
 
-async function perguntar(system: string, usuario: string) {
+async function perguntar(system: string, usuario: string, imagens: Imagem[] = []) {
   if (!process.env.ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY não definida na Vercel");
   const cliente = new Anthropic();
   const mensagem = await cliente.messages
-    .stream({ model: MODELO, max_tokens: 12000, system, messages: [{ role: "user", content: usuario }] })
+    .stream({ model: MODELO, max_tokens: 12000, system, messages: [{ role: "user", content: conteudo(usuario, imagens) }] })
     .finalMessage();
   if (mensagem.stop_reason === "refusal") throw new Error("O modelo recusou este pedido. Reformule ou remova trechos sensíveis.");
   const texto = mensagem.content.flatMap((b) => (b.type === "text" ? [b.text] : [])).join("\n").trim();
@@ -121,23 +131,23 @@ function concorrentes() {
   return lista.length ? lista.join(", ") : "(nenhum informado)";
 }
 
-async function rodarUm(chave: Exclude<ChaveAgente, "orquestrador">, extra: string, ctx: string) {
+async function rodarUm(chave: Exclude<ChaveAgente, "orquestrador">, extra: string, ctx: string, imagens: Imagem[]) {
   const def = AGENTES[chave];
   let usuario = `DADOS DA CONTA (JSON):\n${ctx}`;
   if (chave === "espiao") usuario += `\n\nCONCORRENTES DA LISTA: ${concorrentes()}`;
   if (extra) usuario += `\n\n${chave === "whatsapp" ? "CONVERSAS" : "MATERIAL DO DONO"}:\n${chave === "whatsapp" ? mascarar(extra) : extra}`;
-  return perguntar(def.prompt, usuario);
+  return perguntar(def.prompt, usuario, imagens);
 }
 
-export async function executarAgente(chave: ChaveAgente, extra: string) {
+export async function executarAgente(chave: ChaveAgente, extra: string, imagens: Imagem[] = []) {
   const texto = extra.trim().slice(0, 60000);
-  if (AGENTES[chave].entrada?.obrigatorio && !texto) throw new Error("Este agente precisa do texto pedido no campo acima.");
+  if (AGENTES[chave].entrada?.obrigatorio && !texto && !imagens.length) throw new Error("Este agente precisa do texto pedido no campo acima (ou de imagens anexadas).");
   const ctx = await contexto();
 
-  if (chave !== "orquestrador") return rodarUm(chave, texto, ctx);
+  if (chave !== "orquestrador") return rodarUm(chave, texto, ctx, imagens);
 
   const partes: Exclude<ChaveAgente, "orquestrador">[] = ["analista", "classificador", "roteirista", "orcamento"];
-  const saidas = await Promise.all(partes.map((p) => rodarUm(p, "", ctx)));
+  const saidas = await Promise.all(partes.map((p) => rodarUm(p, "", ctx, imagens)));
   const juntos = partes.map((p, i) => `=== ${AGENTES[p].titulo.toUpperCase()} ===\n${saidas[i]}`).join("\n\n");
   const final = await perguntar(AGENTES.orquestrador.prompt, `RELATÓRIOS DOS AGENTES:\n${juntos}`);
   return `${final}\n\n----- DETALHE POR AGENTE -----\n\n${juntos}`;
