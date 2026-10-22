@@ -127,3 +127,25 @@ export async function alterarStatus(id: string, status: "ACTIVE" | "PAUSED") {
   if (!/^\d+$/.test(id)) throw new Error("ID inválido");
   await graph(id, {}, { status });
 }
+
+export type Criativo = { id: string; nome: string; status: string; titulo: string; texto: string; descricao: string; cta: string };
+
+/** Textos dos anúncios (título, texto principal, botão) para os agentes analisarem. */
+export async function carregarCriativos(): Promise<Criativo[]> {
+  const itens = await paginar(`${conta()}/ads`, {
+    fields: "id,name,effective_status,creative{title,body,call_to_action_type,object_story_spec}",
+    limit: "100",
+  });
+  return itens.map((a) => {
+    const c = a.creative ?? {};
+    const hist = c.object_story_spec ?? {};
+    const dados = hist.link_data ?? hist.video_data ?? {};
+    return {
+      id: a.id, nome: a.name, status: a.effective_status ?? "—",
+      titulo: c.title ?? dados.name ?? dados.title ?? "",
+      texto: c.body ?? dados.message ?? "",
+      descricao: dados.description ?? "",
+      cta: c.call_to_action_type ?? dados.call_to_action?.type ?? "",
+    };
+  });
+}

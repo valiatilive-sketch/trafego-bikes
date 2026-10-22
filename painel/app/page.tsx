@@ -82,6 +82,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ d
           {PERIODOS.map((p) => (
             <Link key={p} href={`/?dias=${p}`} className={p === dias ? "aba ativa" : "aba"}>{p} dias</Link>
           ))}
+          <Link href="/agentes" className="aba">Agentes</Link>
           <form action={sair}><button className="aba">Sair</button></form>
         </nav>
       </header>

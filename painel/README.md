@@ -11,6 +11,13 @@ sugestões (ESCALAR / MANTER / AJUSTAR / PAUSAR) e botões para **pausar/ativar*
    `META_ACCESS_TOKEN`, `META_AD_ACCOUNT_ID`, `META_API_VERSION`, `PAINEL_SENHA`, `PAINEL_SEGREDO`, `META_CUSTO_CONVERSA`.
 4. **Deploy**. O endereço `*.vercel.app` gerado é o seu link.
 
+## Agentes (aba /agentes)
+Orquestrador, Analista, Classificador de ofertas, Espião de concorrentes, Roteirista, Qualidade do WhatsApp e Orçamento.
+Cada um lê os dados reais da conta (7 e 30 dias + textos dos anúncios), chama a API da Anthropic e mostra o resultado na tela.
+Precisam de `ANTHROPIC_API_KEY` na Vercel (modelo padrão `claude-opus-5-5`; para gastar menos, `ANTHROPIC_MODEL=claude-sonnet-5-5`).
+Nada é alterado no Meta por eles. Os resultados não ficam salvos: copie o que precisar.
+Conversas do WhatsApp coladas têm telefones e e-mails ocultados antes do envio. Troque os nomes dos clientes antes de colar.
+
 ## Segurança
 - Um link "escondido" **não é proteção**. Quem protege é a senha (`PAINEL_SENHA`) + sessão assinada (`PAINEL_SEGREDO`).
 - Use senha longa e `PAINEL_SEGREDO` aleatório (32+ caracteres).
