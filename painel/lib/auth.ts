@@ -19,9 +19,9 @@ function iguais(a: string, b: string) {
 }
 
 export function senhaCorreta(tentativa: string) {
-  const senha = process.env.PAINEL_SENHA;
+  const senha = process.env.PAINEL_SENHA?.trim();
   if (!senha) throw new Error("PAINEL_SENHA não definida");
-  return iguais(tentativa, senha);
+  return iguais(tentativa.trim(), senha);
 }
 
 export async function abrirSessao() {
