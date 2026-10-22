@@ -1,0 +1,5 @@
+.env
+dados/*
+!dados/.gitkeep
+conversas/
+__pycache__/

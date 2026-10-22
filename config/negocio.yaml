@@ -1,0 +1,13 @@
+negocio: Loja de bicicleta elétrica
+regioes: [Vitória, Vila Velha, Serra, Cariacica, Guarapari]
+canal_de_venda: WhatsApp (botão de clique direto)
+posicionamento_padrao: Instagram     # Facebook só como teste, se o Analista recomendar
+objetivo_campanha: Conversas no WhatsApp
+autonomia: propor_e_aprovar          # os agentes NUNCA alteram a conta sozinhos
+metricas_chave: [gasto, alcance, frequencia, ctr_link, conversas_iniciadas, custo_por_conversa]
+# Preencha com seus números reais para os agentes calibrarem as recomendações:
+ticket_medio_reais: null
+margem_media_percentual: null
+meta_custo_por_conversa_reais: null
+meta_taxa_conversa_para_venda_percentual: null
+concorrentes: []                     # nomes/@ dos concorrentes a acompanhar
